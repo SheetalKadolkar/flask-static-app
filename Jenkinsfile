@@ -51,9 +51,13 @@ pipeline {
         stage('Deploy to EKS') {
             steps {
                 sh '''
-                sed -i "s|IMAGE_PLACEHOLDER|$IMAGE:$TAG|g" k8s/deployment.yaml
+                kubectl get nodes
+
                 kubectl apply -f k8s/deployment.yaml
                 kubectl apply -f k8s/service.yaml
+
+                kubectl rollout status deployment/flask-app
+                
                 '''
             }
         }
