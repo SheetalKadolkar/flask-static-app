@@ -12,9 +12,11 @@ pipeline {
 
         stage('Checkout') {
             steps {
-                git 'https://github.com/SheetalKadolkar/flask-static-app.git'
-            }
-        }
+                git branch: 'main',
+                url: 'https://github.com/SheetalKadolkar/flask-static-app.git'
+    }
+}
+
 
         stage('Build Docker Image') {
             steps {
