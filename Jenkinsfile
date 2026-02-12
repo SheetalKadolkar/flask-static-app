@@ -4,7 +4,7 @@ pipeline {
     environment {
         IMAGE = "sheetalkadolkar/flask-app"
         TAG = "${BUILD_NUMBER}"
-        CLUSTER = "flask-cluster"
+        CLUSTER = "my-eks-cluster"
         REGION = "us-east-1"
     }
 
