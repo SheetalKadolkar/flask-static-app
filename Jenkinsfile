@@ -3,7 +3,9 @@ pipeline {
 
     environment {
         IMAGE = "sheetalkadolkar/flask-app"
-        TAG = "latest"
+        TAG = "${BUILD_NUMBER}"
+        CLUSTER = "flask-cluster"
+        REGION = "us-east-1"
     }
 
     stages {
@@ -14,29 +16,43 @@ pipeline {
             }
         }
 
-        stage('Build Docker') {
+        stage('Build Docker Image') {
             steps {
                 sh 'docker build -t $IMAGE:$TAG .'
             }
         }
 
-        stage('Push Docker') {
+        stage('Docker Login') {
             steps {
                 withCredentials([usernamePassword(
                     credentialsId: 'docker-hub-creds',
                     usernameVariable: 'USER',
                     passwordVariable: 'PASS'
                 )]) {
-                    sh 'docker login -u $USER -p $PASS'
-                    sh 'docker push $IMAGE:$TAG'
+                    sh 'echo $PASS | docker login -u $USER --password-stdin'
                 }
+            }
+        }
+
+        stage('Push Image') {
+            steps {
+                sh 'docker push $IMAGE:$TAG'
+            }
+        }
+
+        stage('Update Kubeconfig') {
+            steps {
+                sh 'aws eks update-kubeconfig --region $REGION --name $CLUSTER'
             }
         }
 
         stage('Deploy to EKS') {
             steps {
-                sh 'kubectl apply -f k8s/deployment.yaml'
-                sh 'kubectl apply -f k8s/service.yaml'
+                sh '''
+                sed -i "s|IMAGE_PLACEHOLDER|$IMAGE:$TAG|g" k8s/deployment.yaml
+                kubectl apply -f k8s/deployment.yaml
+                kubectl apply -f k8s/service.yaml
+                '''
             }
         }
     }
