@@ -56,7 +56,7 @@ pipeline {
                 kubectl apply -f k8s/deployment.yaml
                 kubectl apply -f k8s/service.yaml
 
-                kubectl rollout status deployment/flask-app
+                kubectl rollout status deployment/flask-deployment
                 
                 '''
             }
